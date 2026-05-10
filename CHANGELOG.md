@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.24.1] - 2026-05-10
+
+### Changed
+- Migrated Pi package imports and package metadata to the `@earendil-works/*` scope, switched async TypeScript execution discovery to upstream `jiti`, and hardened forked-session creation to use the public `SessionManager.open()` path.
+
 ## [0.24.0] - 2026-05-03
 
 ### Changed

@@ -8,7 +8,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import type { AgentConfig } from "../../agents/agents.ts";
 import { applyThinkingSuffix } from "../shared/pi-args.ts";
 import { injectSingleOutputInstruction, resolveSingleOutputPath, validateFileOnlyOutputMode } from "../shared/single-output.ts";
@@ -35,26 +35,52 @@ import {
 
 const require = createRequire(import.meta.url);
 const piPackageRoot = resolvePiPackageRoot();
-const jitiCliPath: string | undefined = (() => {
-	const candidates: Array<() => string> = [
-		() => path.join(path.dirname(require.resolve("jiti/package.json")), "lib/jiti-cli.mjs"),
-		() => path.join(path.dirname(require.resolve("@mariozechner/jiti/package.json")), "lib/jiti-cli.mjs"),
+
+function resolveJitiCliFromPackageJson(packageJsonPath: string): string | undefined {
+	if (!fs.existsSync(packageJsonPath)) return undefined;
+	const packageRoot = path.dirname(packageJsonPath);
+	const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8")) as {
+		bin?: string | Record<string, string>;
+	};
+	const binField = pkg.bin;
+	const binPath = typeof binField === "string"
+		? binField
+		: binField?.jiti ?? Object.values(binField ?? {})[0];
+	const candidates = [binPath, "lib/jiti-cli.mjs"].filter((candidate): candidate is string => Boolean(candidate));
+	for (const candidate of candidates) {
+		const cliPath = path.resolve(packageRoot, candidate);
+		if (fs.existsSync(cliPath)) return cliPath;
+	}
+	return undefined;
+}
+
+function resolveJitiCliPath(): string | undefined {
+	const candidates: Array<() => string | undefined> = [
+		() => require.resolve("jiti/package.json"),
+		() => piPackageRoot
+			? createRequire(path.join(piPackageRoot, "package.json")).resolve("jiti/package.json")
+			: undefined,
 		() => {
+			if (!process.argv[1]) return undefined;
 			const piEntry = fs.realpathSync(process.argv[1]);
-			const piRequire = createRequire(piEntry);
-			return path.join(path.dirname(piRequire.resolve("@mariozechner/jiti/package.json")), "lib/jiti-cli.mjs");
+			return createRequire(piEntry).resolve("jiti/package.json");
 		},
+		() => piPackageRoot ? path.join(piPackageRoot, "node_modules", "jiti", "package.json") : undefined,
 	];
 	for (const candidate of candidates) {
 		try {
-			const p = candidate();
-			if (fs.existsSync(p)) return p;
+			const packageJsonPath = candidate();
+			if (!packageJsonPath) continue;
+			const cliPath = resolveJitiCliFromPackageJson(packageJsonPath);
+			if (cliPath) return cliPath;
 		} catch {
 			// Candidate not available in this install, continue probing.
 		}
 	}
 	return undefined;
-})();
+}
+
+const jitiCliPath = resolveJitiCliPath();
 
 interface AsyncExecutionContext {
 	pi: ExtensionAPI;
@@ -139,7 +165,7 @@ export function isAsyncAvailable(): boolean {
  */
 function spawnRunner(cfg: object, suffix: string, cwd: string): { pid?: number; error?: string } {
 	if (!jitiCliPath) {
-		return { error: "jiti for TypeScript execution could not be found" };
+		return { error: "upstream jiti for TypeScript execution could not be found; ensure package dependencies are installed" };
 	}
 
 	try {

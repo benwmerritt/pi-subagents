@@ -53,9 +53,7 @@ interface SessionManagerStub {
 	getSessionId(): string;
 	getSessionFile(): string | undefined;
 	getLeafId(): string | null;
-	constructor: {
-		open(sessionFile: string): { createBranchedSession(leafId: string): string | undefined };
-	};
+	openSession(sessionFile: string): { createBranchedSession(leafId: string): string | undefined };
 }
 
 function makeSessionManagerRecorder(options: SessionStubOptions = {}) {
@@ -63,11 +61,9 @@ function makeSessionManagerRecorder(options: SessionStubOptions = {}) {
 		getSessionId: () => "session-123",
 		getSessionFile: () => options.sessionFile,
 		getLeafId: () => (options.leafId === undefined ? "leaf-current" : options.leafId),
-		constructor: {
-			open: () => ({
-				createBranchedSession: () => "/tmp/child.jsonl",
-			}),
-		},
+		openSession: () => ({
+			createBranchedSession: () => "/tmp/child.jsonl",
+		}),
 	};
 	return { manager };
 }
@@ -200,19 +196,17 @@ describe("fork context execution wiring", { skip: !available ? "subagent executo
 			getSessionId: () => "session-123",
 			getSessionFile: () => options.sessionFile,
 			getLeafId: () => options.leafId,
-			constructor: {
-				open: (sessionFile: string) => {
-					openedPaths.push(sessionFile);
-					return {
-						createBranchedSession: (leafId: string) => {
-							branchedLeafIds.push(leafId);
-							counter++;
-							const childSessionFile = path.join(tempDir, `fork-${counter}.jsonl`);
-							fs.writeFileSync(childSessionFile, '{"type":"session","version":1,"id":"child","timestamp":"2026-04-16T00:00:00.000Z","cwd":"/tmp"}\n', "utf-8");
-							return childSessionFile;
-						},
-					};
-				},
+			openSession: (sessionFile: string) => {
+				openedPaths.push(sessionFile);
+				return {
+					createBranchedSession: (leafId: string) => {
+						branchedLeafIds.push(leafId);
+						counter++;
+						const childSessionFile = path.join(tempDir, `fork-${counter}.jsonl`);
+						fs.writeFileSync(childSessionFile, '{"type":"session","version":1,"id":"child","timestamp":"2026-04-16T00:00:00.000Z","cwd":"/tmp"}\n', "utf-8");
+						return childSessionFile;
+					},
+				};
 			},
 		};
 		return { manager, openedPaths, branchedLeafIds };
@@ -501,17 +495,17 @@ describe("fork context execution wiring", { skip: !available ? "subagent executo
 
 	it("returns a tool error (instead of throwing) when branch creation fails", async () => {
 		const executor = makeExecutor();
+		const parentSessionFile = path.join(tempDir, "parent.jsonl");
+		fs.writeFileSync(parentSessionFile, '{"type":"session","version":1,"id":"parent","timestamp":"2026-04-16T00:00:00.000Z","cwd":"/tmp"}\n', "utf-8");
 		const manager = {
 			getSessionId: () => "session-123",
-			getSessionFile: () => path.join(tempDir, "parent.jsonl"),
+			getSessionFile: () => parentSessionFile,
 			getLeafId: () => "leaf-fail",
-			constructor: {
-				open: () => ({
-					createBranchedSession: () => {
-						throw new Error("branch write failed");
-					},
-				}),
-			},
+			openSession: () => ({
+				createBranchedSession: () => {
+					throw new Error("branch write failed");
+				},
+			}),
 		};
 
 		const result = await executor.execute(

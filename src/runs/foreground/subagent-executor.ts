@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { AgentToolResult } from "@mariozechner/pi-agent-core";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { AgentToolResult } from "@earendil-works/pi-agent-core";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { type AgentConfig, type AgentScope } from "../../agents/agents.ts";
 import { getArtifactsDir } from "../../shared/artifacts.ts";
 import { ChainClarifyComponent, type ChainClarifyResult } from "./chain-clarify.ts";
@@ -880,7 +880,7 @@ function runAsyncPath(data: ExecutionContextData, deps: ExecutorDeps): AgentTool
 
 	if (!isAsyncAvailable()) {
 		return {
-			content: [{ type: "text", text: "Async mode requires jiti for TypeScript execution but it could not be found. Install globally: npm install -g jiti" }],
+			content: [{ type: "text", text: "Async mode requires upstream jiti for TypeScript execution but it could not be found. Ensure the pi-subagents package dependencies are installed." }],
 			isError: true,
 			details: { mode: "single" as const, results: [] },
 		};
@@ -1070,7 +1070,7 @@ async function runChainPath(data: ExecutionContextData, deps: ExecutorDeps): Pro
 	if (chainResult.requestedAsync) {
 		if (!isAsyncAvailable()) {
 			return {
-				content: [{ type: "text", text: "Background mode requires jiti for TypeScript execution but it could not be found." }],
+				content: [{ type: "text", text: "Background mode requires upstream jiti for TypeScript execution but it could not be found. Ensure the pi-subagents package dependencies are installed." }],
 				isError: true,
 				details: { mode: "chain" as const, results: [] },
 			};
@@ -1479,7 +1479,7 @@ async function runParallelPath(data: ExecutionContextData, deps: ExecutorDeps): 
 		if (result.runInBackground) {
 			if (!isAsyncAvailable()) {
 				return {
-					content: [{ type: "text", text: "Background mode requires jiti for TypeScript execution but it could not be found." }],
+					content: [{ type: "text", text: "Background mode requires upstream jiti for TypeScript execution but it could not be found. Ensure the pi-subagents package dependencies are installed." }],
 					isError: true,
 					details: { mode: "parallel" as const, results: [] },
 				};
@@ -1756,7 +1756,7 @@ async function runSinglePath(data: ExecutionContextData, deps: ExecutorDeps): Pr
 		if (result.runInBackground) {
 			if (!isAsyncAvailable()) {
 				return {
-					content: [{ type: "text", text: "Background mode requires jiti for TypeScript execution but it could not be found." }],
+					content: [{ type: "text", text: "Background mode requires upstream jiti for TypeScript execution but it could not be found. Ensure the pi-subagents package dependencies are installed." }],
 					isError: true,
 					details: { mode: "single" as const, results: [] },
 				};

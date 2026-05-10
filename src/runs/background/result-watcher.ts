@@ -87,7 +87,7 @@ export function createResultWatcher(
 				intercomTarget?: string;
 			};
 			if (data.sessionId && data.sessionId !== state.currentSessionId) return;
-			if (!data.sessionId && data.cwd && data.cwd !== state.baseCwd) return;
+			if (!data.sessionId && data.cwd && (!state.baseCwd || data.cwd !== state.baseCwd)) return;
 
 			const now = Date.now();
 			const completionKey = buildCompletionKey(data, `result:${file}`);

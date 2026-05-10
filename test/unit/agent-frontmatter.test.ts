@@ -57,10 +57,10 @@ Do work
 	it("loads packaged planner, worker, and oracle with fork defaultContext", () => {
 		const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-subagents-builtin-default-context-"));
 		tempDirs.push(dir);
-		const agents = discoverAgents(dir, "both").agents;
+		const agents = discoverAgentsAll(dir).builtin;
 
 		for (const name of ["planner", "worker", "oracle"]) {
-			const agent = agents.find((candidate) => candidate.name === name && candidate.source === "builtin");
+			const agent = agents.find((candidate) => candidate.name === name);
 			assert.equal(agent?.defaultContext, "fork", `${name} should default to fork context`);
 		}
 	});

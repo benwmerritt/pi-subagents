@@ -190,8 +190,7 @@ function getGlobalNpmRoot(): string | null {
 }
 
 function configuredPiIntercomPackageDir(input: ResolveIntercomBridgeInput, agentDir: string): string | undefined {
-	const cwd = path.resolve(input.cwd ?? process.cwd());
-	const projectConfigDir = findNearestProjectConfigDir(cwd);
+	const projectConfigDir = input.cwd ? findNearestProjectConfigDir(path.resolve(input.cwd)) : undefined;
 	const settingsFiles = [
 		...(projectConfigDir ? [{ file: path.join(projectConfigDir, "settings.json"), configDir: projectConfigDir, scope: "project" as const }] : []),
 		{ file: path.join(agentDir, "settings.json"), configDir: agentDir, scope: "user" as const },
