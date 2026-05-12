@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+- Added a packaged `/review-loop` prompt for parent-controlled worker, fresh-reviewer, and fix-worker cycles that can run as an initial async chain or as follow-up subagent runs after async worker completions, stopping when reviewers find no fixes worth doing now or the review-round cap is reached.
+
+### Fixed
+- Let `async: true` chain tool calls run in the background when `clarify` is omitted, and avoid showing the async badge for explicit foreground clarify runs.
+
 ## [0.24.2] - 2026-05-10
 
 ### Fixed
