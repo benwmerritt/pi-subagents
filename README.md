@@ -16,6 +16,20 @@ pi install npm:pi-subagents
 
 That is the only required step. You can add optional pieces later.
 
+## Shell CLI
+
+This fork also exposes a shell CLI for orchestrators outside Pi, such as Claude Code:
+
+```bash
+pi-subagent run scout "map the auth flow"
+pi-subagent run --bg worker "implement the approved plan in docs/plan.md"
+pi-subagent status
+pi-subagent logs <run-id> -n 120
+pi-subagent result <run-id>
+```
+
+`subpi` is an alias for `pi-subagent`. Foreground is default; `--bg` detaches a run and stores logs/status under `~/.pi/agent/subpi-runs/`.
+
 ## Try this first
 
 You do not need to create agents, write config, or learn slash commands. After installing, ask Pi for delegation in plain language:

@@ -23,10 +23,13 @@
     "cli"
   ],
   "bin": {
-    "pi-subagents": "install.mjs"
+    "pi-subagents": "install.mjs",
+    "pi-subagent": "bin/pi-subagent.mjs",
+    "subpi": "bin/pi-subagent.mjs"
   },
   "files": [
     "src/**/*.ts",
+    "bin/",
     "*.mjs",
     "agents/",
     "skills/**/*",
