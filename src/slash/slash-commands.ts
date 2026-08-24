@@ -312,6 +312,16 @@ async function runSlashSubagent(
 	ctx: ExtensionContext,
 	params: SubagentParamsLike,
 ): Promise<void> {
+	const guard: {
+		params: SubagentParamsLike;
+		ctx: ExtensionContext;
+		approval?: Promise<boolean>;
+	} = { params, ctx };
+	pi.events.emit("subagent:before-slash-dispatch", guard);
+	if (guard.approval && !(await guard.approval)) {
+		if (ctx.hasUI) ctx.ui.notify("Subagent dispatch denied.", "warning");
+		return;
+	}
 	if (ctx.hasUI) ctx.ui.setToolsExpanded(false);
 	const requestId = randomUUID();
 	const initialDetails = buildSlashInitialResult(requestId, params);
